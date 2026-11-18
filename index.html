@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Compta-Pro</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#0f766e">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,7 +48,7 @@ label{font-size:13px;color:var(--mu)}
 <body>
 <main>
 <button class="btn" id="inst" hidden style="margin-bottom:12px">📲 Installer l’application</button>
-<div id="auth" class="card"><h1>📦 Compta-Pro</h1>
+<div id="auth" class="card"><h1 style="display:flex;align-items:center;gap:12px"><img src="icon-192.png" alt="" width="48" height="48" style="border-radius:12px">Compta-Pro</h1>
 <div class="seg" id="am"><button class="in on" data-m="login">Connexion</button><button class="in" data-m="patron">Nouvelle entreprise</button><button class="in" data-m="vendeur">Rejoindre</button></div>
 <div id="af1" hidden><label>Votre nom</label><input id="an" autocomplete="name"></div>
 <label>Email</label><input id="ae" type="email" autocomplete="username">
@@ -127,7 +128,7 @@ label{font-size:13px;color:var(--mu)}
 <div id="plist"></div>
 </section>
 </div>
-<p class="mu" style="text-align:center;margin:16px 0 0">Compta-Pro · v3</p></main>
+<p class="mu" style="text-align:center;margin:16px 0 0">Compta-Pro · v4</p></main>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
