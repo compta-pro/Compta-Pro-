@@ -99,7 +99,7 @@ label{font-size:13px;color:var(--mu)}
 <div id="cart"></div>
 <label>Client (facultatif)</label><select id="cc"></select>
 <label>Montant reçu (FCFA) — vide = payé en totalité</label><input id="cpd" type="number" min="0" inputmode="numeric">
-<button class="btn" id="cpay">Encaisser</button><p class="msg" id="cm"></p>
+<button class="btn" id="cpay">Encaisser</button><p class="msg" id="cm"></p><div id="rcpt"></div>
 </section>
 <section id="dep" class="card" hidden>
 <label>Catégorie</label><select id="dc"><option>Loyer</option><option>Salaires</option><option>Transport</option><option>Électricité / eau</option><option>Achat de matériel</option><option>Autre</option></select>
@@ -127,7 +127,7 @@ label{font-size:13px;color:var(--mu)}
 <div id="plist"></div>
 </section>
 </div>
-<p class="mu" style="text-align:center;margin:16px 0 0">Compta-Pro · v2</p></main>
+<p class="mu" style="text-align:center;margin:16px 0 0">Compta-Pro · v3</p></main>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -233,7 +233,7 @@ $('cpay').onclick=function(){if(!cart.length){$('cm').textContent='Le panier est
  if(paid<tot&&!cl){$('cm').textContent='Choisissez un client pour une vente à crédit.';return}
  cart.forEach(function(l){var pr=DB.products.filter(function(x){return x.id===l.p})[0];
   put('moves',{p:l.p,k:'out',q:l.q,bp:pr?pr.buy:0,sp:l.x,d:d,n:'Vente caisse',t:cl,pd:paid<tot?Math.round(l.q*l.x*paid/tot):undefined})});
- cart=[];$('cpd').value='';$('cm').textContent='Vente encaissée ✓ ('+fmt(tot)+' FCFA)';renderCart()};
+ showReceipt(cart.slice(),tot,paid,cl,d);cart=[];$('cpd').value='';$('cm').textContent='Vente encaissée ✓ ('+fmt(tot)+' FCFA)';renderCart()};
 $('dd').value=new Date().toISOString().slice(0,10);
 function renderD(){var h=DB.expenses.slice().sort(function(a,b){return(b.ts||0)-(a.ts||0)});
  $('dlist').innerHTML=h.map(function(x){return '<div class="row"><div>'+esc(x.c)+'<div class="mu">'+x.d+(x.n?' · '+esc(x.n):'')+'</div></div><div class="q out">'+fmt(x.a)+'</div><button class="btn sm" data-dx="'+x._id+'">✕</button></div>'}).join('')}
@@ -245,6 +245,17 @@ var dip=null;window.addEventListener('beforeinstallprompt',function(e){e.prevent
 $('inst').onclick=function(){if(dip){dip.prompt();dip.userChoice.finally(function(){dip=null;$('inst').hidden=true})}};
 window.addEventListener('appinstalled',function(){$('inst').hidden=true});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+var rtxt='',rph='';
+function showReceipt(lines,tot,paid,cl,d){
+ var bn=$('ttl').textContent.replace('📦 ','');
+ var t=DB.parties.filter(function(x){return x.id===cl})[0];
+ var rows=lines.map(function(l){var p=DB.products.filter(function(x){return x.id===l.p})[0];return (p?p.name:'?')+' : '+l.q+' × '+fmt(l.x)+' = '+fmt(l.q*l.x)});
+ rtxt='*'+bn+'*\nReçu du '+d+(t?'\nClient : '+t.name:'')+'\n\n'+rows.join('\n')+'\n\n*Total : '+fmt(tot)+' FCFA*\nPayé : '+fmt(Math.min(paid,tot))+' FCFA'+(paid<tot?'\nReste à payer : '+fmt(tot-paid)+' FCFA':'')+'\n\nMerci pour votre confiance !';
+ var ph=t&&t.ph?t.ph.replace(/\D/g,''):'';if(ph.length===8)ph='226'+ph;rph=ph;
+ $('rcpt').innerHTML='<div class="row" style="display:block"><b>Reçu</b><pre style="white-space:pre-wrap;font:inherit;margin:8px 0">'+esc(rtxt.replace(/\*/g,''))+'</pre><div class="g2"><button class="btn" id="rwa">WhatsApp</button><button class="btn" id="rsh" style="background:var(--card);color:var(--tx);border:1px solid var(--bd)">Partager…</button></div></div>'}
+$('rcpt').onclick=function(e){
+ if(e.target.id==='rwa'){window.open('https://wa.me/'+rph+'?text='+encodeURIComponent(rtxt),'_blank')}
+ else if(e.target.id==='rsh'){if(navigator.share)navigator.share({text:rtxt}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(rtxt).then(function(){$('cm').textContent='Reçu copié ✓'})}};
 var cfg={apiKey:"AIzaSyCWv95YX_GIAaVXQARP2h7rZCB1r_Z6Tjs",authDomain:"compta-pro-1ea61.firebaseapp.com",projectId:"compta-pro-1ea61",appId:"1:1044404681870:web:33de68bdea994d29a9dddf"};
 var au,fs,bizId,role,busy=false,unsub=[],team=[];
 function errMsg(e){var c=e&&e.code||'';return({'auth/invalid-credential':'Email ou mot de passe incorrect.','auth/email-already-in-use':'Cet email est déjà utilisé.','auth/weak-password':'Mot de passe trop court (6 minimum).','auth/invalid-email':'Email invalide.','permission-denied':'Code d’entreprise invalide ou accès refusé.','auth/network-request-failed':'Pas de connexion internet.'})[c]||('Erreur : '+(c||(e&&e.message)))}
